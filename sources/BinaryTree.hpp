@@ -5,17 +5,21 @@
 #include <stack>
 #include <vector>
 #include <unordered_set>
+#include <fstream>
+#include <sstream>
 
-namespace ariel
-{
+
+namespace ariel{
+
+    enum iterator_type {postOrder,inOrder,preOrder};   
 
     template <class T>
 
-    class BinaryTree
-    {
+    class BinaryTree{
+    
+
     private:
-        typedef struct node
-        {
+        typedef struct node{
             T mValue;
             struct node *mRight, *mLeft;
 
@@ -23,36 +27,34 @@ namespace ariel
         } Node;
 
         Node *root;
+        std::string result = "";
+        std::ostringstream stream;
 
     public:
+        
         BinaryTree() { root = nullptr; }
 
         ~BinaryTree() { clearTree(); }
 
-        BinaryTree(const BinaryTree &someTree)
-        {
+        BinaryTree(const BinaryTree &someTree){
             clearTree();
             createTree(someTree);
         }
 
-        BinaryTree(BinaryTree &&someTree) noexcept
-        {
+        BinaryTree(BinaryTree &&someTree) noexcept{
             root = someTree.root;
             someTree.root = nullptr;
         }
 
-        BinaryTree &operator=(const BinaryTree &someTree)
-        {
-            if (this != &someTree)
-            {
+        BinaryTree &operator=(const BinaryTree &someTree){
+            if (this != &someTree){
                 clearTree();
                 createTree(someTree);
             }
             return *this;
         }
 
-        BinaryTree &operator=(BinaryTree &&other) noexcept
-        {
+        BinaryTree &operator=(BinaryTree &&other) noexcept{
             root = other.root;
             other.root = nullptr;
             return *this;
@@ -62,51 +64,39 @@ namespace ariel
         BinaryTree &add_left(const T &pNode, const T &val);
         BinaryTree &add_right(const T &pNode, const T &val);
 
-        void clearTree()
-        {
-            if (root)
-            {
+        void clearTree(){
+            if (root){
                 return;
             }
-            for (auto it = begin(); it != end(); ++it)
-            {
+            for (auto it = begin(); it != end(); ++it){
                 Node *temp = it.getCurr();
                 delete temp;
             }
         }
 
-        void copyTree(Node *nRoot, Node *subTree)
-        {
-            if (subTree->mLeft)
-            {
+        void copyTree(Node *nRoot, Node *subTree){
+            if (subTree->mLeft){
                 nRoot->mLeft = new Node(subTree->mLeft->mValue);
                 copyTree(nRoot->mLeft, subTree->mLeft);
             }
-            if (subTree->mRight)
-            {
+            if (subTree->mRight){
                 nRoot->mRight = new Node(subTree->mRight->mValue);
                 copyTree(nRoot->mRight, subTree->mRight);
             }
         }
 
-        void createTree(const BinaryTree &tree)
-        {
-            if (!tree.root)
-            {
+        void createTree(const BinaryTree &tree){
+            if (!tree.root){
                 return;
             }
             root = new Node(tree.root->mValue);
             copyTree(root, tree.root);
         }
 
-        Node *findNode(T value)
-        {
-            if (root)
-            {
-                for (auto it = begin_inorder(); it != end_inorder(); ++it)
-                {
-                    if (*it == value)
-                    {
+        Node *findNode(T value){
+            if (root){
+                for (auto it = begin_inorder(); it != end_inorder(); ++it){
+                    if (*it == value){
                         return it.getCurr();
                     }
                 }
@@ -114,452 +104,372 @@ namespace ariel
             return nullptr;
         }
 
-        /**
-             * printTree - Function for printing the tree
-             * @return: std::string - A string that represents all the vertices in the graph and their children
-            */
-        std::string printTree()
-        {
-            printBinaryTreeVisualy(this->root);
-            print(root);
-            return "";
+
+        std::string printTree(){
+            return printBinaryTreeVisualy(this->root);
         }
 
-        /**
-             * print - A recursive function that prints each vertex and its two children
-             * @param: Node* node - Starts at the parent vertex of the tree and changes as it runs
-             */
-        void print(Node *node)
-        {
-            if (node == nullptr)
-            {
-                return;
-            }
-            std::cout << "(" << node->mValue << ") -> ";
-            if (node->mLeft == nullptr)
-            {
-                std::cout << "(L-null,";
-            }
-            else
-            {
-                std::cout << "(" << node->mRight->mValue << ", ";
-            }
-            if (node->mRight == nullptr)
-            {
-                std::cout << "R-null)" << std::endl;
-            }
-            else
-            {
-                std::cout << node->mLeft->mValue << ")" << std::endl;
-            }
-            print(node->mRight);
-            print(node->mLeft);
+
+        std::string printBinaryTreeVisualy(Node *_root){
+            stream << "\n*********************************\n\n";
+            printVisualyTree2(_root, 0 );
+            stream << "\n*********************************\n";
+            return stream.str();  
         }
 
-        /**
-             * printBinaryTreeVisualy - A recursive function that graphically prints the tree
-             * @param: Node* _root - Begins at the parent vertex of the tree
-             */
-        void printBinaryTreeVisualy(Node *_root)
-        {
-            std::cout << "================================" << std::endl;
-            printVisualyTree(_root, 0);
-            std::cout << "================================" << std::endl;
-        }
-
-        /**
-             * printVisualyTree - A recursive function that prints the tree graphically
-             * @param: Node* root - Starts at the parent vertex of the tree and changes as it runs
-             * @param: int level - The level of the tree where we are
-             */
-        void printVisualyTree(Node *root, int level)
-        {
-            if (root == nullptr)
-            {
+        void printVisualyTree(Node *root, int level){
+            if (root == nullptr){
                 return;
             }
             printVisualyTree(root->mRight, level + 1);
-            if (level != 0)
-            {
-                for (int i = 0; i < level - 1; i++)
-                {
-                    std::cout << "|\t";
+            if (level != 0){
+                for (int i = 0; i < level - 1; i++){
+                    stream << "|\t";
                 }
-                std::cout << "|-------" << root->mValue << std::endl;
+                stream <<"|-------";
+                stream << root->mValue;
+                stream <<"\n";
             }
-            else
-            {
-                std::cout << root->mValue << std::endl;
+            else{
+                stream << root->mValue;
+                stream << "\n";
             }
             printVisualyTree(root->mLeft, level + 1);
         }
 
-        friend std::ostream &operator<<(std::ostream &os, BinaryTree &tree)
-        {
+
+        void printVisualyTree2(Node *root, int level){
+            if (root == nullptr){
+                return;
+            }
+            printVisualyTree2(root->mRight, level + 1);
+            if (level != 0){
+                for (int i = 0; i < level - 1; i++){
+                    stream << "|\t";
+                }
+                stream << "|-------" << root->mValue << std::endl;
+            }else{
+                stream << root->mValue << std::endl;
+            }
+            printVisualyTree2(root->mLeft, level + 1);
+        }
+
+        const friend std::ostream &operator<<(std::ostream &os, BinaryTree &tree) {
             return os << tree.printTree() << std::endl;
         }
 
-        /**
-         * iterator - main iterator class which contains the basic funcionality of the an iterator,
-         * other BinaryTree iterators function differently when trasversing over a tree therefore
-         * it would be much easier to implement different derrived iterators from this main one.
-        */
-        class iterator
-        {
+
+        class iterator{
         public:
             Node *curr_node;
-
-            T &operator*() const
-            {
-                return curr_node->mValue;
-            }
-
-            T *operator->() const
-            {
-                return &(curr_node->mValue);
-            }
-
-            bool operator==(const iterator &itr) const
-            {
-                return (curr_node == itr.curr_node);
-            }
-
-            bool operator!=(const iterator &itr) const
-            {
-                return !(curr_node == itr.curr_node);
-            }
-
-            Node *getCurr()
-            {
-                return curr_node;
-            }
-        };
-
-        class preorder_iterator : public iterator
-        {
-        private:
+            Node *temp;
             std::stack<Node *> stk;
+            iterator_type type;
+            std::unordered_set<Node *> ordered;
+            iterator(Node *root, iterator_type type) : type(type){
+                if(type == iterator_type::inOrder){
+                    inorder_cons(root);
+                }else if(type == iterator_type::postOrder){
+                    postorder_cons(root);
+                }else{
+                    preorder_cons(root);
+                }
+            }
 
-        public:
-            preorder_iterator(Node *root = nullptr)
-            {
-                if (root == nullptr)
-                {
-                    iterator::curr_node = nullptr;
+            void preorder_cons(Node *root = nullptr){
+                if (root == nullptr){
+                    curr_node = nullptr;
                     return;
                 }
                 stk.push(root);
-                iterator::curr_node = stk.top();
+                curr_node = stk.top();
             }
 
-            /**
-             * Trasversal algorithm taken from GeeksforGeeks
-             * https://www.geeksforgeeks.org/iterative-preorder-traversal/
-            */
-            preorder_iterator &operator++()
-            {
-                if (stk.empty())
-                {
-                    iterator::curr_node = nullptr;
-                }
-                else
-                {
-                    Node *node = iterator::curr_node;
-                    stk.pop();
-                    if (node->mRight != nullptr)
-                    {
-                        stk.push(node->mRight);
-                    }
-                    if (node->mLeft != nullptr)
-                    {
-                        stk.push(node->mLeft);
-                    }
-                    if (!(stk.empty()))
-                    {
-                        iterator::curr_node = stk.top();
-                    }
-                    else
-                    {
-                        iterator::curr_node = nullptr;
-                    }
-                }
-                return *this;
-            }
-            
-            /**
-             * Trasversal algorithm taken from GeeksforGeeks
-             * https://www.geeksforgeeks.org/iterative-preorder-traversal/
-            */
-            preorder_iterator operator++(int)
-            {
-                preorder_iterator it = *this;
-                if (stk.empty())
-                {
-                    iterator::curr_node = nullptr;
-                }
-                else
-                {
-                    Node *node = iterator::curr_node;
-                    stk.pop();
-                    if (node->mRight != nullptr)
-                    {
-                        stk.push(node->mRight);
-                    }
-                    if (node->mLeft != nullptr)
-                    {
-                        stk.push(node->mLeft);
-                    }
-                    if (!(stk.empty()))
-                    {
-                        iterator::curr_node = stk.top();
-                    }
-                    else
-                    {
-                        iterator::curr_node = nullptr;
-                    }
-                }
-                return it;
-            }
-        };
 
-
-
-        /*
-        Trasversal algorithm taken from GeeksforGeeks
-        https://www.geeksforgeeks.org/inorder-tree-traversal-without-recursion/
-        */
-        class inorder_iterator : public iterator
-        {
-        private:
-            std::stack<Node *> stk;
-
-        public:
-            inorder_iterator(Node *root = nullptr)
-            {
-                while (root != nullptr)
-                {
+            void inorder_cons(Node *root = nullptr){
+                while (root != nullptr){
                     stk.push(root);
                     root = root->mLeft;
                 }
-                if (stk.empty())
-                {
-                    iterator::curr_node = nullptr;
+                if (stk.empty()){
+                    curr_node = nullptr;
                 }
-                else
-                {
-                    iterator::curr_node = stk.top();
+                else{
+                    curr_node = stk.top();
                     stk.pop();
                 }
             }
 
-            inorder_iterator &operator++()
-            {
-                if (stk.empty() && iterator::curr_node == nullptr)
-                {
-                    iterator::curr_node = nullptr;
-                }
-                else
-                {
-                    if (iterator::curr_node->mRight == nullptr)
-                    {
-                        if (!stk.empty())
-                        {
-                            iterator::curr_node = stk.top();
-                            stk.pop();
-                        }
-                        else
-                        {
-                            iterator::curr_node = nullptr;
-                        }
-                    }
-                    else
-                    {
-                        iterator::curr_node = iterator::curr_node->mRight;
-                        while (iterator::curr_node != nullptr)
-                        {
-                            stk.push(iterator::curr_node);
-                            iterator::curr_node = iterator::curr_node->mLeft;
-                        }
-                        iterator::curr_node = stk.top();
-                        stk.pop();
-                    }
-                }
-                return *this;
-            }
 
-            inorder_iterator operator++(int)
-            {
-                inorder_iterator it = *this;
-                if (stk.empty() && iterator::curr_node == nullptr)
-                {
-                    iterator::curr_node = nullptr;
-                }
-                else
-                {
-                    if (iterator::curr_node->mRight == nullptr)
-                    {
-                        if (!stk.empty())
-                        {
-                            iterator::curr_node = stk.top();
-                            stk.pop();
-                        }
-                        else
-                        {
-                            iterator::curr_node = nullptr;
-                        }
-                    }
-                    else
-                    {
-                        iterator::curr_node = iterator::curr_node->mRight;
-                        while (iterator::curr_node != nullptr)
-                        {
-                            stk.push(iterator::curr_node);
-                            iterator::curr_node = iterator::curr_node->mLeft;
-                        }
-                        iterator::curr_node = stk.top();
-                        stk.pop();
-                    }
-                }
-                return it;
-            }
-        };
+            void postorder_cons(Node *root = nullptr){
 
-
-        /*
-        Trasversal algorithm taken from GeeksforGeeks
-        https://www.geeksforgeeks.org/postorder-traversal-binary-tree-without-recursion-without-stack/ 
-        */
-        class postorder_iterator : public iterator
-        {
-        private:
-            Node *temp;
-            std::unordered_set<Node *> ordered;
-
-        public:
-            postorder_iterator(Node *root = nullptr)
-            {
-                if (root == nullptr)
-                {
-                    iterator::curr_node = nullptr;
+                if (root == nullptr) {
+                    curr_node = nullptr;
                 }
-                else
-                {
+                else{
                     temp = root;
-                    postOrdered(root);
-                }
-            }
-
-            postorder_iterator &operator++()
-            {
-                Node *node = temp;
-                if (temp && ordered.find(temp) == ordered.end())
-                {
-                    postOrdered(node);
-                }
-                else
-                {
-                    iterator::curr_node = nullptr;
-                }
-                return *this;
-            }
-
-            postorder_iterator operator++(int)
-            {
-                postorder_iterator it = *this;
-                Node *node = temp;
-                if (temp && ordered.find(temp) == ordered.end())
-                {
-                    postOrdered(node);
-                }
-                else
-                {
-                    iterator::curr_node = nullptr;
-                }
-                return it;
-            }
-
-            void postOrdered(Node *node)
-            {
-                while (temp != nullptr && ordered.find(temp) == ordered.end())
-                {
-                    if (temp->mLeft != nullptr && ordered.find(temp->mLeft) == ordered.end())
-                    {
+                    while (temp != nullptr && ordered.find(temp) == ordered.end()){
+                    if (temp->mLeft != nullptr && ordered.find(temp->mLeft) == ordered.end()){
                         temp = temp->mLeft;
                     }
-                    else if (temp->mRight && ordered.find(temp->mRight) == ordered.end())
-                    {
+                    else if (temp->mRight && ordered.find(temp->mRight) == ordered.end()){
                         temp = temp->mRight;
                     }
-                    else
-                    {
+                    else{
+                        iterator::curr_node = temp;
+                        ordered.insert(temp);
+                        temp = root;
+                        break;
+                    }
+                }
+                }
+            }
+            
+            T &operator*() const{
+                return curr_node->mValue;
+            }
+
+            T *operator->() const{
+                return &(curr_node->mValue);
+            }
+
+            bool operator==(const iterator &itr) const{
+                return (curr_node == itr.curr_node);
+            }
+
+            bool operator!=(const iterator &itr) const{
+                return !(curr_node == itr.curr_node);
+            }
+
+            Node *getCurr(){
+                return curr_node;
+            }
+
+
+            iterator &operator++() {
+                switch (type){
+                case iterator_type::inOrder:
+                   return inorder_operatorPlus();
+                case iterator_type::postOrder:
+                   return postorder_operatorPlus();
+                case iterator_type::preOrder:
+                   return preorder_operatorPlus();
+                }
+            }
+
+            iterator &postorder_operatorPlus(){
+                Node *node = temp;
+                if (temp && ordered.find(temp) == ordered.end()){
+                    while (temp != nullptr && ordered.find(temp) == ordered.end()){
+                    if (temp->mLeft != nullptr && ordered.find(temp->mLeft) == ordered.end()){
+                        temp = temp->mLeft;
+                    }
+                    else if (temp->mRight && ordered.find(temp->mRight) == ordered.end()){
+                        temp = temp->mRight;
+                    }
+                    else{
                         iterator::curr_node = temp;
                         ordered.insert(temp);
                         temp = node;
                         break;
                     }
                 }
+                }
+                else{
+                    iterator::curr_node = nullptr;
+                }
+                return *this;
             }
+
+            iterator &inorder_operatorPlus(){
+                if (stk.empty() && iterator::curr_node == nullptr){
+                    iterator::curr_node = nullptr;
+                }
+                else{
+                    if (iterator::curr_node->mRight == nullptr){
+                        if (!stk.empty()){
+                            iterator::curr_node = stk.top();
+                            stk.pop();
+                        }
+                        else{
+                            iterator::curr_node = nullptr;
+                        }
+                    }
+                    else{
+                        iterator::curr_node = iterator::curr_node->mRight;
+                        while (iterator::curr_node != nullptr)
+                        {
+                            stk.push(iterator::curr_node);
+                            iterator::curr_node = iterator::curr_node->mLeft;
+                        }
+                        iterator::curr_node = stk.top();
+                        stk.pop();
+                    }
+                }
+                return *this;
+            }
+
+            iterator &preorder_operatorPlus(){
+                if (stk.empty()){
+                    curr_node = nullptr;
+                }
+                else{
+                    Node *node = curr_node;
+                    stk.pop();
+                    if (node->mRight != nullptr){
+                        stk.push(node->mRight);
+                    }
+                    if (node->mLeft != nullptr){
+                        stk.push(node->mLeft);
+                    }
+                    if (!(stk.empty())){
+                        curr_node = stk.top();
+                    }
+                    else{
+                        curr_node = nullptr;
+                    }
+                }
+                return *this;
+            }
+
+            iterator operator++(int){
+
+                switch (type){
+                case iterator_type::inOrder:
+                   return inorder_operatorPlus2();
+                case iterator_type::postOrder:
+                   return postorder_operatorPlus2();
+                case iterator_type::preOrder:
+                   return preorder_operatorPlus2();
+                }
+            }
+
+            iterator preorder_operatorPlus2(){
+                iterator it = *this;
+                if (stk.empty()){
+                    iterator::curr_node = nullptr;
+                }
+                else{
+                    Node *node = iterator::curr_node;
+                    stk.pop();
+                    if (node->mRight != nullptr){
+                        stk.push(node->mRight);
+                    }
+                    if (node->mLeft != nullptr){
+                        stk.push(node->mLeft);
+                    }
+                    if (!(stk.empty())){
+                        iterator::curr_node = stk.top();
+                    }
+                    else{
+                        iterator::curr_node = nullptr;
+                    }
+                }
+                return it;
+            }
+
+            iterator postorder_operatorPlus2(){
+                iterator it = *this;
+                Node *node = temp;
+                if (temp && ordered.find(temp) == ordered.end()){
+                   while (temp != nullptr && ordered.find(temp) == ordered.end()){
+                    if (temp->mLeft != nullptr && ordered.find(temp->mLeft) == ordered.end()){
+                        temp = temp->mLeft;
+                    }
+                    else if (temp->mRight && ordered.find(temp->mRight) == ordered.end()){
+                        temp = temp->mRight;
+                    }
+                    else{
+                        iterator::curr_node = temp;
+                        ordered.insert(temp);
+                        temp = node;
+                        break;
+                    }
+                    }
+                }
+                else{
+                    iterator::curr_node = nullptr;
+                }
+                return it;
+            }
+            
+            iterator inorder_operatorPlus2(){
+                iterator it = *this;
+                if (stk.empty() && iterator::curr_node == nullptr){
+                    iterator::curr_node = nullptr;
+                }
+                else{
+                    if (iterator::curr_node->mRight == nullptr){
+                        if (!stk.empty()){
+                            iterator::curr_node = stk.top();
+                            stk.pop();
+                        }
+                        else{
+                            iterator::curr_node = nullptr;
+                        }
+                    }
+                    else{
+                        iterator::curr_node = iterator::curr_node->mRight;
+                        while (iterator::curr_node != nullptr){
+                            stk.push(iterator::curr_node);
+                            iterator::curr_node = iterator::curr_node->mLeft;
+                        }
+                        iterator::curr_node = stk.top();
+                        stk.pop();
+                    }
+                }
+                return it;
+            }
+
         };
 
-        preorder_iterator begin_preorder() { return preorder_iterator{root}; }
-        preorder_iterator end_preorder() { return preorder_iterator{nullptr}; }
 
-        inorder_iterator begin_inorder() { return inorder_iterator{root}; }
-        inorder_iterator end_inorder() { return inorder_iterator{nullptr}; }
-        inorder_iterator begin() { return inorder_iterator{root}; }
-        inorder_iterator end() { return inorder_iterator{nullptr}; }
-
-        postorder_iterator begin_postorder() { return postorder_iterator{root}; }
-        postorder_iterator end_postorder() { return postorder_iterator{nullptr}; }
+        iterator begin_preorder() { return iterator{root, iterator_type::preOrder}; }
+        iterator end_preorder() { return iterator{nullptr, iterator_type::preOrder}; }
+        iterator begin_inorder() { return iterator{root, iterator_type::inOrder}; }
+        iterator end_inorder() { return iterator{nullptr, iterator_type::inOrder}; }
+        iterator begin() { return iterator{root, iterator_type::inOrder}; }
+        iterator end() { return iterator{nullptr, iterator_type::inOrder}; }
+        iterator begin_postorder() { return iterator{root, iterator_type::postOrder}; }
+        iterator end_postorder() { return iterator{nullptr, iterator_type::postOrder}; }
     };
 
     template <typename T>
-    BinaryTree<T> &BinaryTree<T>::add_root(const T &node)
-    {
-        if (root == nullptr)
-        {
+    BinaryTree<T> &BinaryTree<T>::add_root(const T &node){
+        if (root == nullptr){
             root = new Node(node);
         }
-        else
-        {
+        else{
             root->mValue = node;
         }
         return *this;
     }
 
     template <typename T>
-    BinaryTree<T> &BinaryTree<T>::add_right(const T &pNode, const T &val)
-    {
+    BinaryTree<T> &BinaryTree<T>::add_right(const T &pNode, const T &val){
         Node *temp = findNode(pNode);
-        if (temp == nullptr)
-        {
+        if (temp == nullptr){
             throw std::invalid_argument("Unable to add to a non-existing node in the tree!");
         }
-        if (temp->mRight == nullptr)
-        {
+        if (temp->mRight == nullptr){
             temp->mRight = new Node(val);
         }
-        else
-        {
+        else{
             temp->mRight->mValue = val;
         }
         return *this;
     }
 
     template <typename T>
-    BinaryTree<T> &BinaryTree<T>::add_left(const T &pNode, const T &val)
-    {
+    BinaryTree<T> &BinaryTree<T>::add_left(const T &pNode, const T &val){
         Node *temp = findNode(pNode);
-        if (temp == nullptr)
-        {
+        if (temp == nullptr){
             throw std::invalid_argument("Unable to add to a non-existing node in the tree!");
         }
-        if (temp->mLeft == nullptr)
-        {
+        if (temp->mLeft == nullptr){
             temp->mLeft = new Node(val);
         }
-        else
-        {
+        else{
             temp->mLeft->mValue = val;
         }
         return *this;
